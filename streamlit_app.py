@@ -195,7 +195,7 @@ with col_main1:
         board_spec['이면지'] = st.selectbox("이면지", paper_keys, index=2 if len(paper_keys) > 2 else 0, key=f'single_inner_{selected_supplier}')
 
 with col_main2:
-    st.subheader("✨ 계산 결과")
+    st.subheader(" 👽 계산 결과 👽")
     if st.button("기본 원가 계산"):
         # --- [수정] 최종 결정된 'final_생산지폭'을 전달 ---
         base_cost, detail = calculate_definitive_cost_v13(
