@@ -89,7 +89,7 @@ def calculate_definitive_cost_v13(
 # --- Streamlit 앱 UI 구성 ---
 st.set_page_config(layout="wide")
 st.title("TOVIX 박스 기본 원가 계산기 (v13.2)")
-st.caption("IT운영팀 (생산지폭 수동입력 기능 추가)-문의: 함 매니저")
+st.caption("IT운영팀 (lee@tovix.co.kr)")
 
 with st.sidebar:
     st.header("📄 원지 데이터 관리")
