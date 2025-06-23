@@ -28,13 +28,13 @@ supplier_data = {
 }
 
 corrugated_factor_map = {
-    "E골": 1.3, "B골": 1.4, "A골": 1.6, "DW골(A+B)": 1.6 + 1.4
+    "B골": 1.4, "A골": 1.6, "DW골(A+B)": 1.6 + 1.4
 }
 processing_cost_per_sqm_map = {
-    "E골": 15, "B골": 10, "A골": 20, "DW골(A+B)": 29
+    "B골": 10, "A골": 20, "DW골(A+B)": 29
 }
 
-# --- 계산 함수 (엑셀 IF 로직 최종 적용) ---
+# --- 계산 함수 (v13.0과 동일) ---
 def calculate_definitive_cost_v13(
         장, 폭, 고, 미미, 여유값, 폭수,
         board_spec, paper_data,
@@ -42,11 +42,9 @@ def calculate_definitive_cost_v13(
 ):
     전장 = (장 + 폭) * 2 + 미미
     전폭 = 폭 + 고
-
     실제지폭 = (전폭 * 폭수) + 여유값
 
-    # 엑셀의 복잡한 IF 로직을 그대로 코드로 구현
-    if 실제지폭 > 2500: 생산지폭 = 2500 # 최대값 처리, 혹은 오류 반환 가능
+    if 실제지폭 > 2500: 생산지폭 = 2500
     elif 실제지폭 >= 2400: 생산지폭 = 2500
     elif 실제지폭 >= 2300: 생산지폭 = 2400
     elif 실제지폭 >= 2200: 생산지폭 = 2300
@@ -99,7 +97,7 @@ def calculate_definitive_cost_v13(
         "입력: 장(mm)": 장, "입력: 폭(mm)": 폭, "입력: 고(mm)": 고,
         "입력: 미미(mm)": 미미, "입력: 여유값(mm)": 여유값, "입력: 폭수": 폭수,
         "계산: 전장(mm)": 전장, "계산: 전폭(mm)": 전폭,
-        "계산: 실제지폭(mm)": 실제지폭, # 용어 변경
+        "계산: 실제지폭(mm)": 실제지폭,
         "계산: 최종 생산지폭(mm)": 생산지폭,
         "계산: 박스당 소요량(㎡)": round(area_per_box, 6),
         "㎡당 원재료비(반올림)": rounded_material_cost_per_sqm,
@@ -111,15 +109,14 @@ def calculate_definitive_cost_v13(
 
 # --- Streamlit 앱 UI 구성 ---
 st.set_page_config(layout="wide")
-st.title("TOVIX 박스 기본 원가 계산기 (v13.0)")
-st.caption("IT운영팀 (업체관리/최종로직)")
+st.title("TOVIX 박스 기본 원가 계산기 (v13.1)")
+st.caption("IT운영팀 (업체관리/최종로직/실시간계산)")
 
 with st.sidebar:
     st.header("📄 원지 데이터 관리")
     selected_supplier = st.radio("업체 선택", options=list(supplier_data.keys()), horizontal=True)
     active_paper_data_defaults = supplier_data[selected_supplier]
     st.markdown("---")
-
     paper_data = {}
     for paper, values in active_paper_data_defaults.items():
         st.markdown(f"**{paper}**")
@@ -144,25 +141,65 @@ with col_main1:
     여유값 = c5.number_input("재단 여유값(mm)", value=20, help="엑셀 예시의 실제지폭 1400에 맞춘 기본값")
     폭수 = c6.number_input("폭수", min_value=1, value=2)
 
+    # --- [추가] 실시간 계산 및 표시 ---
+    st.markdown("##### ↳ 실시간 계산 결과")
+    # 실시간 계산 로직
+    rt_전장 = (장 + 폭) * 2 + 미미
+    rt_전폭 = 폭 + 고
+    rt_실제지폭 = (rt_전폭 * 폭수) + 여유값
+
+    # 생산지폭 IF 로직을 실시간으로 적용
+    if rt_실제지폭 > 2500: rt_생산지폭 = 2500
+    elif rt_실제지폭 >= 2400: rt_생산지폭 = 2500
+    elif rt_실제지폭 >= 2300: rt_생산지폭 = 2400
+    elif rt_실제지폭 >= 2200: rt_생산지폭 = 2300
+    elif rt_실제지폭 >= 2100: rt_생산지폭 = 2200
+    elif rt_실제지폭 >= 2000: rt_생산지폭 = 2100
+    elif rt_실제지폭 >= 1900: rt_생산지폭 = 2000
+    elif rt_실제지폭 >= 1800: rt_생산지폭 = 1900
+    elif rt_실제지폭 >= 1750: rt_생산지폭 = 1800
+    elif rt_실제지폭 >= 1700: rt_생산지폭 = 1750
+    elif rt_실제지폭 >= 1650: rt_생산지폭 = 1700
+    elif rt_실제지폭 >= 1600: rt_생산지폭 = 1650
+    elif rt_실제지폭 >= 1550: rt_생산지폭 = 1600
+    elif rt_실제지폭 >= 1500: rt_생산지폭 = 1550
+    elif rt_실제지폭 >= 1450: rt_생산지폭 = 1500
+    elif rt_실제지폭 >= 1400: rt_생산지폭 = 1450
+    elif rt_실제지폭 >= 1350: rt_생산지폭 = 1400
+    elif rt_실제지폭 >= 1300: rt_생산지폭 = 1350
+    elif rt_실제지폭 >= 1250: rt_생산지폭 = 1300
+    elif rt_실제지폭 >= 1200: rt_생산지폭 = 1250
+    elif rt_실제지폭 >= 1150: rt_생산지폭 = 1200
+    elif rt_실제지폭 >= 1100: rt_생산지폭 = 1150
+    else: rt_생산지폭 = rt_실제지폭
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("계산된 전장(mm)", f"{rt_전장:,}")
+    m2.metric("계산된 전폭(mm)", f"{rt_전폭:,}")
+    m3.metric("계산된 실제지폭(mm)", f"{rt_실제지폭:,}")
+    m4.metric("적용될 생산지폭(mm)", f"{rt_생산지폭:,}", help="실제지폭을 기준으로 계산된 최종 생산 규격입니다.")
+    # ------------------------------------
+
     st.markdown("---")
     st.subheader("3️⃣ 원단 및 공정 선택")
-    flute_grade = st.radio("골 종류", list(corrugated_factor_map.keys()), index=3, horizontal=True)
+    flute_grade = st.radio("골 종류", list(corrugated_factor_map.keys()), index=2, horizontal=True) # DW골이 기본이 되도록 index=2로 수정
     loss_rate = st.number_input("재료 로스율(%)", min_value=0.0, value=10.0, step=0.1, format="%.1f")
 
     board_spec = {}
     paper_keys = list(paper_data.keys())
+    # (원단 선택 UI는 동일)
     if "DW" in flute_grade:
         st.info("DW골(이중골) 사양을 선택하세요.")
-        board_spec['표면지'] = st.selectbox("표면지", paper_keys, index=4, key=f'dw_outer_{selected_supplier}')
+        board_spec['표면지'] = st.selectbox("표면지", paper_keys, index=4 if len(paper_keys) > 4 else 0, key=f'dw_outer_{selected_supplier}')
         board_spec['골심지A'] = st.selectbox("골심지A", paper_keys, index=0, key=f'dw_flute_a_{selected_supplier}')
         board_spec['중심지'] = st.selectbox("중심지", paper_keys, index=0, key=f'dw_center_{selected_supplier}')
         board_spec['골심지B'] = st.selectbox("골심지B", paper_keys, index=0, key=f'dw_flute_b_{selected_supplier}')
-        board_spec['이면지'] = st.selectbox("이면지", paper_keys, index=2, key=f'dw_inner_{selected_supplier}')
+        board_spec['이면지'] = st.selectbox("이면지", paper_keys, index=2 if len(paper_keys) > 2 else 0, key=f'dw_inner_{selected_supplier}')
     else:
         st.info("편면골 사양을 선택하세요.")
-        board_spec['표면지'] = st.selectbox("표면지", paper_keys, index=4, key=f'single_outer_{selected_supplier}')
+        board_spec['표면지'] = st.selectbox("표면지", paper_keys, index=4 if len(paper_keys) > 4 else 0, key=f'single_outer_{selected_supplier}')
         board_spec['골심지'] = st.selectbox("골심지", paper_keys, index=0, key=f'single_flute_{selected_supplier}')
-        board_spec['이면지'] = st.selectbox("이면지", paper_keys, index=2, key=f'single_inner_{selected_supplier}')
+        board_spec['이면지'] = st.selectbox("이면지", paper_keys, index=2 if len(paper_keys) > 2 else 0, key=f'single_inner_{selected_supplier}')
 
 with col_main2:
     st.subheader("✨ 계산 결과")
